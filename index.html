@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 연간 플래너</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+  :root {
+    --cream: #faf8f3;
+    --paper: #f5f2ea;
+    --ink: #1a1612;
+    --ink-light: #4a4540;
+    --ink-faint: #9a948e;
+    --border: #ddd8ce;
+    --border-dark: #c8c2b6;
+    --red: #c0392b;
+    --red-light: #fdf0ee;
+    --blue: #2563a8;
+    --blue-light: #eef3fb;
+    --sat-blue: #3b82c4;
+    --sat-bg: #f0f5fc;
+    --today-bg: #fffbeb;
+    --today-border: #f59e0b;
+    --stripe: #f7f5f0;
+    --shadow: 0 2px 12px rgba(26,22,18,0.08);
+
+    /* Month colors */
+    --m1: #fce8e8; --m1d: #c0392b;
+    --m2: #fde8f5; --m2d: #9b59b6;
+    --m3: #e8f5e8; --m3d: #27ae60;
+    --m4: #e8f0fd; --m4d: #2563a8;
+    --m5: #fff3e0; --m5d: #e67e22;
+    --m6: #e0f7fa; --m6d: #00838f;
+    --m7: #fce4ec; --m7d: #c2185b;
+    --m8: #fffde7; --m8d: #f9a825;
+    --m9: #e8f5e9; --m9d: #2e7d32;
+    --m10: #fbe9e7; --m10d: #bf360c;
+    --m11: #ede7f6; --m11d: #4527a0;
+    --m12: #e1f5fe; --m12d: #0277bd;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .main-header {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .main-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+  }
+  .main-title span {
+    color: var(--today-border);
+    font-size: 1.1rem;
+    margin-left: 8px;
+  }
+  .header-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .year-selector {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 4px 10px;
+  }
+  .year-btn {
+    background: none;
+    border: none;
+    color: var(--cream);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .year-btn:hover { background: rgba(255,255,255,0.2); }
+  .year-display {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.2rem;
+    min-width: 50px;
+    text-align: center;
+  }
+  .btn-print {
+    background: var(--today-border);
+    color: var(--ink);
+    border: none;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  /* ── MONTH TABS ── */
+  .month-tabs {
+    background: var(--paper);
+    border-bottom: 1px solid var(--border-dark);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .month-tabs::-webkit-scrollbar { display: none; }
+  .month-tab {
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink-faint);
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .month-tab:hover { color: var(--ink); }
+  .month-tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+    font-weight: 700;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .content {
+    padding: 28px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ── MONTH BLOCK ── */
+  .month-block {
+    display: none;
+  }
+  .month-block.active {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+  }
+
+  /* ── LEFT PANEL (mini cal + stats) ── */
+  .left-panel { display: flex; flex-direction: column; gap: 16px; }
+
+  .month-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .month-card-header {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .month-card-header .month-name {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+  .month-card-header .month-year {
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.1em;
+  }
+
+  /* mini calendar */
+  .mini-cal { padding: 0 16px 16px; }
+  .mini-cal-head {
+    display: grid;
+    grid-template-columns: repeat(7,1fr);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .mini-cal-head span {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ink-faint);
+    padding: 4px 0;
+  }
+  .mini-cal-head span.sun { color: var(--red); }
+  .mini-cal-head span.sat { color: var(--sat-blue); }
+  .mini-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7,1fr);
+    gap: 2px;
+  }
+  .mini-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.12s;
+    position: relative;
+  }
+  .mini-day:hover { background: var(--stripe); }
+  .mini-day.other-month { color: var(--border-dark); }
+  .mini-day.today {
+    background: var(--today-bg);
+    border: 2px solid var(--today-border);
+    font-weight: 700;
+  }
+  .mini-day.has-event::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--today-border);
+  }
+  .mini-day.sun-day { color: var(--red); font-weight: 500; }
+  .mini-day.sat-day { color: var(--sat-blue); font-weight: 500; }
+  .mini-day.selected-day {
+    background: var(--ink);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  /* stats */
+  .stats-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .stats-card h4 {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--stripe);
+    font-size: 0.83rem;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-num {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  /* ── RIGHT PANEL (daily list) ── */
+  .right-panel {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .list-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .list-header h3 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.1rem;
+  }
+  .list-header p {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+
+  .daily-list { padding: 8px 0; }
+
+  .day-row {
+    display: grid;
+    grid-template-columns: 48px 46px 1fr 80px;
+    align-items: center;
+    padding: 0 16px;
+    min-height: 38px;
+    border-bottom: 1px solid var(--stripe);
+    transition: background 0.1s;
+    gap: 4px;
+  }
+  .day-row:last-child { border-bottom: none; }
+  .day-row:nth-child(even) { background: var(--stripe); }
+  .day-row.sun-row {
+    background: var(--red-light) !important;
+  }
+  .day-row.sat-row {
+    background: var(--sat-bg) !important;
+  }
+  .day-row.today-row {
+    background: var(--today-bg) !important;
+    border-left: 3px solid var(--today-border);
+  }
+
+  .day-num {
+    font-family: 'Gowun Batang', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+  }
+  .day-name {
+    font-size: 0.72rem;
+    text-align: center;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .sun-row .day-num, .sun-row .day-name { color: var(--red); }
+  .sat-row .day-num, .sat-row .day-name { color: var(--sat-blue); }
+  .sun-row .day-name { background: rgba(192,57,43,0.08); }
+  .sat-row .day-name { background: rgba(59,130,196,0.1); }
+
+  .event-input {
+    border: none;
+    background: transparent;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.83rem;
+    color: var(--ink);
+    width: 100%;
+    padding: 4px 8px;
+    border-radius: 4px;
+    outline: none;
+    transition: background 0.15s;
+  }
+  .event-input:focus {
+    background: rgba(26,22,18,0.04);
+  }
+  .event-input::placeholder { color: var(--border-dark); }
+
+  .day-actions {
+    display: flex;
+    justify-content: flex-end;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .day-row:hover .day-actions { opacity: 1; }
+  .tag-btn {
+    font-size: 0.65rem;
+    padding: 2px 7px;
+    border-radius: 10px;
+    border: 1px solid var(--border-dark);
+    background: none;
+    cursor: pointer;
+    color: var(--ink-light);
+    transition: all 0.12s;
+  }
+  .tag-btn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  /* event tags */
+  .event-tag {
+    display: inline-block;
+    font-size: 0.6rem;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-right: 4px;
+    font-weight: 500;
+    vertical-align: middle;
+  }
+  .tag-work { background: #dbeafe; color: #1e40af; }
+  .tag-personal { background: #fce7f3; color: #9d174d; }
+  .tag-important { background: #fef3c7; color: #92400e; }
+
+  /* ── ALL MONTHS VIEW ── */
+  .all-months-grid {
+    display: none;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .all-months-grid.active { display: grid; }
+  .small-month-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .small-month-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(26,22,18,0.13);
+  }
+  .small-month-header {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .small-month-header .sm-name {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  .small-month-header .sm-count {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(26,22,18,0.08);
+    color: var(--ink-light);
+  }
+  .small-mini-cal { padding: 0 12px 12px; }
+  .small-mini-cal .mini-cal-head { margin-bottom: 4px; }
+  .small-mini-cal .mini-day { font-size: 0.65rem; }
+  .month-events-preview {
+    padding: 8px 16px 12px;
+    border-top: 1px solid var(--stripe);
+    max-height: 80px;
+    overflow: hidden;
+  }
+  .preview-event {
+    font-size: 0.7rem;
+    color: var(--ink-light);
+    padding: 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .preview-event span { color: var(--ink-faint); margin-right: 4px; }
+
+  /* ── FLOATING BUTTON ── */
+  .fab {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(26,22,18,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s;
+    z-index: 50;
+  }
+  .fab:hover { transform: scale(1.08); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,22,18,0.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    width: 380px;
+    max-width: 90vw;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  }
+  .modal h3 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+  .modal-field { margin-bottom: 14px; }
+  .modal-field label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  .modal-field input, .modal-field select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-dark);
+    border-radius: 8px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .modal-field input:focus, .modal-field select:focus {
+    border-color: var(--ink);
+  }
+  .modal-btns {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    justify-content: flex-end;
+  }
+  .btn-cancel {
+    padding: 8px 18px;
+    border: 1px solid var(--border-dark);
+    background: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .btn-save {
+    padding: 8px 18px;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  /* ── VIEW TOGGLE ── */
+  .view-toggle {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 3px;
+  }
+  .view-btn {
+    padding: 4px 12px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+  }
+  .view-btn.active {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  /* ── PRINT ── */
+  @media print {
+    .main-header, .month-tabs, .fab, .modal-overlay { display: none !important; }
+    .content { padding: 0; }
+    .month-block { display: grid !important; page-break-after: always; }
+    .day-actions { display: none; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .content { padding: 16px; }
+    .month-block.active { grid-template-columns: 1fr; }
+    .left-panel { display: none; }
+    .all-months-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="main-header">
+  <div class="main-title">
+    📅 연간 플래너 <span id="headerYear">2025</span>
+  </div>
+  <div class="header-controls">
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="setView('month')">월별</button>
+      <button class="view-btn" onclick="setView('all')">전체</button>
+    </div>
+    <div class="year-selector">
+      <button class="year-btn" onclick="changeYear(-1)">◀</button>
+      <span class="year-display" id="yearDisplay">2025</span>
+      <button class="year-btn" onclick="changeYear(1)">▶</button>
+    </div>
+    <button class="btn-print" onclick="window.print()">🖨 인쇄</button>
+  </div>
+</header>
+
+<!-- MONTH TABS -->
+<nav class="month-tabs" id="monthTabs"></nav>
+
+<!-- CONTENT -->
+<div class="content">
+  <!-- 월별 뷰 -->
+  <div id="monthBlocks"></div>
+  <!-- 전체 뷰 -->
+  <div class="all-months-grid" id="allMonthsGrid"></div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openModal()" title="일정 추가">+</button>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>📌 일정 추가</h3>
+    <div class="modal-field">
+      <label>날짜</label>
+      <input type="date" id="modalDate">
+    </div>
+    <div class="modal-field">
+      <label>내용</label>
+      <input type="text" id="modalText" placeholder="일정 내용 입력..." maxlength="50">
+    </div>
+    <div class="modal-field">
+      <label>구분</label>
+      <select id="modalTag">
+        <option value="">없음</option>
+        <option value="work">업무</option>
+        <option value="personal">개인</option>
+        <option value="important">중요</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-save" onclick="saveModalEvent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let currentYear = 2026;
+let currentMonth = new Date().getMonth(); // 0-based
+let currentView = 'month';
+const MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS_KO = ['일','월','화','수','목','금','토'];
+const DAYS_EN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTH_COLORS = [
+  {bg:'#fce8e8',dark:'#c0392b',light:'#fff5f5'},
+  {bg:'#fde8f5',dark:'#9b59b6',light:'#fdf2ff'},
+  {bg:'#e8f5e8',dark:'#27ae60',light:'#f0fdf0'},
+  {bg:'#e8f0fd',dark:'#2563a8',light:'#eff6ff'},
+  {bg:'#fff3e0',dark:'#e67e22',light:'#fffbf0'},
+  {bg:'#e0f7fa',dark:'#00838f',light:'#f0ffff'},
+  {bg:'#fce4ec',dark:'#c2185b',light:'#fff0f5'},
+  {bg:'#fffde7',dark:'#f9a825',light:'#fffff0'},
+  {bg:'#e8f5e9',dark:'#2e7d32',light:'#f0fff4'},
+  {bg:'#fbe9e7',dark:'#bf360c',light:'#fff5f0'},
+  {bg:'#ede7f6',dark:'#4527a0',light:'#f5f0ff'},
+  {bg:'#e1f5fe',dark:'#0277bd',light:'#f0f8ff'},
+];
+
+// ── STORAGE ──
+function saveData() {
+  localStorage.setItem('planner_events', JSON.stringify(events));
+  localStorage.setItem('planner_year', currentYear);
+}
+function loadData() {
+  const saved = localStorage.getItem('planner_events');
+  if (saved) events = JSON.parse(saved);
+  const yr = localStorage.getItem('planner_year');
+  if (yr) currentYear = parseInt(yr);
+}
+
+let events = {}; // key: "YYYY-MM-DD" → {text, tag}
+
+// ── HELPERS ──
+function toKey(y,m,d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+function daysInMonth(y,m) { return new Date(y,m+1,0).getDate(); }
+function firstDayOfMonth(y,m) { return new Date(y,m,1).getDay(); } // 0=Sun
+function isToday(y,m,d) {
+  const t = new Date();
+  return t.getFullYear()===y && t.getMonth()===m && t.getDate()===d;
+}
+
+// ── INIT ──
+function init() {
+  loadData();
+  // set current month to today if year matches
+  const today = new Date();
+  if (currentYear === today.getFullYear()) {
+    currentMonth = today.getMonth();
+  } else {
+    currentMonth = 0;
+  }
+  document.getElementById('yearDisplay').textContent = currentYear;
+  document.getElementById('headerYear').textContent = currentYear;
+  renderTabs();
+  renderAllMonthBlocks();
+  renderAllMonthsGrid();
+  activateMonth(currentMonth);
+}
+
+// ── TABS ──
+function renderTabs() {
+  const nav = document.getElementById('monthTabs');
+  nav.innerHTML = '';
+  const allTab = document.createElement('div');
+  allTab.className = 'month-tab' + (currentView==='all'?' active':'');
+  allTab.textContent = '전체보기';
+  allTab.onclick = () => setView('all');
+  nav.appendChild(allTab);
+  MONTHS_KO.forEach((name,i) => {
+    const tab = document.createElement('div');
+    tab.className = 'month-tab' + (currentView==='month' && i===currentMonth?' active':'');
+    tab.textContent = name;
+    tab.id = `tab-${i}`;
+    tab.onclick = () => { setView('month'); activateMonth(i); };
+    nav.appendChild(tab);
+  });
+}
+
+// ── VIEW CONTROL ──
+function setView(v) {
+  currentView = v;
+  document.querySelectorAll('.view-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes(v==='month'?'월':'전'));
+  });
+  document.getElementById('allMonthsGrid').classList.toggle('active', v==='all');
+  document.getElementById('monthBlocks').style.display = v==='month'?'block':'none';
+  renderTabs();
+  if (v==='all') renderAllMonthsGrid();
+}
+
+function activateMonth(m) {
+  currentMonth = m;
+  document.querySelectorAll('.month-block').forEach(b => b.classList.remove('active'));
+  const block = document.getElementById(`block-${m}`);
+  if (block) block.classList.add('active');
+  document.querySelectorAll('.month-tab').forEach((t,i) => {
+    t.classList.toggle('active', i===m+1);
+  });
+}
+
+// ── RENDER ALL MONTH BLOCKS ──
+function renderAllMonthBlocks() {
+  const container = document.getElementById('monthBlocks');
+  container.innerHTML = '';
+  for (let m=0; m<12; m++) {
+    container.appendChild(buildMonthBlock(m));
+  }
+}
+
+function buildMonthBlock(m) {
+  const col = MONTH_COLORS[m];
+  const days = daysInMonth(currentYear, m);
+  const div = document.createElement('div');
+  div.className = 'month-block';
+  div.id = `block-${m}`;
+
+  // count events
+  let eventCount = 0;
+  for (let d=1; d<=days; d++) {
+    const k = toKey(currentYear,m,d);
+    if (events[k] && events[k].text) eventCount++;
+  }
+
+  div.innerHTML = `
+    <div class="left-panel">
+      <div class="month-card">
+        <div class="month-card-header" style="background:${col.bg}; border-bottom:3px solid ${col.dark}">
+          <div class="month-name" style="color:${col.dark}">${MONTHS_KO[m]}</div>
+          <div class="month-year">${currentYear}</div>
+        </div>
+        <div class="mini-cal">
+          <div class="mini-cal-head">
+            <span class="sun">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="sat">토</span>
+          </div>
+          <div class="mini-cal-grid" id="minical-${m}"></div>
+        </div>
+      </div>
+      <div class="stats-card">
+        <h4>이달 통계</h4>
+        <div class="stat-row"><span>총 일수</span><span class="stat-num">${days}일</span></div>
+        <div class="stat-row"><span>주말</span><span class="stat-num" id="stat-weekend-${m}">-</span></div>
+        <div class="stat-row"><span>등록 일정</span><span class="stat-num" id="stat-events-${m}">${eventCount}</span></div>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="list-header">
+        <div>
+          <h3>${currentYear}년 ${MONTHS_KO[m]}</h3>
+          <p>날짜를 클릭하거나 텍스트를 직접 입력하세요</p>
+        </div>
+      </div>
+      <div class="daily-list" id="list-${m}"></div>
+    </div>
+  `;
+
+  renderMiniCal(m, div);
+  renderDailyList(m, div);
+  calcStats(m, div);
+  return div;
+}
+
+// ── MINI CAL ──
+function renderMiniCal(m, container) {
+  const grid = container.querySelector(`#minical-${m}`);
+  if (!grid) return;
+  grid.innerHTML = '';
+  const firstDay = firstDayOfMonth(currentYear, m); // 0=Sun
+  const days = daysInMonth(currentYear, m);
+  const prevDays = daysInMonth(currentYear, m-1);
+
+  // prev month fillers
+  for (let i=0; i<firstDay; i++) {
+    const d = document.createElement('div');
+    d.className = 'mini-day other-month';
+    d.textContent = prevDays - firstDay + 1 + i;
+    grid.appendChild(d);
+  }
+  // this month
+  for (let d=1; d<=days; d++) {
+    const cell = document.createElement('div');
+    const dow = new Date(currentYear,m,d).getDay();
+    let cls = 'mini-day';
+    if (dow===0) cls += ' sun-day';
+    if (dow===6) cls += ' sat-day';
+    if (isToday(currentYear,m,d)) cls += ' today';
+    const k = toKey(currentYear,m,d);
+    if (events[k] && events[k].text) cls += ' has-event';
+    cell.className = cls;
+    cell.textContent = d;
+    cell.onclick = () => scrollToDay(m, d);
+    grid.appendChild(cell);
+  }
+  // next month fillers
+  const total = firstDay + days;
+  const nextFill = (7 - (total % 7)) % 7;
+  for (let i=1; i<=nextFill; i++) {
+    const d2 = document.createElement('div');
+    d2.className = 'mini-day other-month';
+    d2.textContent = i;
+    grid.appendChild(d2);
+  }
+}
+
+function scrollToDay(m, d) {
+  const row = document.getElementById(`row-${m}-${d}`);
+  if (row) row.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+// ── DAILY LIST ──
+function renderDailyList(m, container) {
+  const list = container.querySelector(`#list-${m}`);
+  if (!list) return;
+  list.innerHTML = '';
+  const days = daysInMonth(currentYear, m);
+  for (let d=1; d<=days; d++) {
+    list.appendChild(buildDayRow(m, d));
+  }
+}
+
+function buildDayRow(m, d) {
+  const dow = new Date(currentYear,m,d).getDay();
+  const isSun = dow===0, isSat = dow===6;
+  const todayFlag = isToday(currentYear,m,d);
+  const k = toKey(currentYear,m,d);
+  const ev = events[k] || {text:'',tag:''};
+
+  let rowCls = 'day-row';
+  if (isSun) rowCls += ' sun-row';
+  else if (isSat) rowCls += ' sat-row';
+  if (todayFlag) rowCls += ' today-row';
+
+  const row = document.createElement('div');
+  row.className = rowCls;
+  row.id = `row-${m}-${d}`;
+
+  // day number
+  const numEl = document.createElement('div');
+  numEl.className = 'day-num';
+  numEl.textContent = d;
+
+  // day name
+  const nameEl = document.createElement('div');
+  nameEl.className = 'day-name';
+  nameEl.textContent = DAYS_KO[dow];
+
+  // event input
+  const inputEl = document.createElement('input');
+  inputEl.type = 'text';
+  inputEl.className = 'event-input';
+  inputEl.placeholder = todayFlag ? '오늘 일정...' : '';
+  inputEl.maxLength = 50;
+  inputEl.value = ev.tag && ev.text ? `[${tagLabel(ev.tag)}] ${ev.text}` : (ev.text || '');
+  inputEl.addEventListener('change', () => {
+    let val = inputEl.value.trim();
+    // strip tag prefix if any
+    const tagMatch = val.match(/^\[(.+?)\] (.+)$/);
+    if (tagMatch) {
+      events[k] = {text: tagMatch[2], tag: tagKeyFromLabel(tagMatch[1])};
+    } else {
+      events[k] = {text: val, tag: ev.tag||''};
+    }
+    saveData();
+    updateStatCount(m);
+    updateMiniCalDot(m, d);
+  });
+
+  // action btn
+  const actEl = document.createElement('div');
+  actEl.className = 'day-actions';
+  const tagBtnEl = document.createElement('button');
+  tagBtnEl.className = 'tag-btn';
+  tagBtnEl.textContent = '태그';
+  tagBtnEl.onclick = (e) => { e.stopPropagation(); openTagPicker(k, m, d, row, inputEl); };
+  actEl.appendChild(tagBtnEl);
+
+  row.append(numEl, nameEl, inputEl, actEl);
+  return row;
+}
+
+function tagLabel(t) { return {work:'업무',personal:'개인',important:'중요'}[t]||t; }
+function tagKeyFromLabel(l) { return {업무:'work',개인:'personal',중요:'important'}[l]||l; }
+
+function updateStatCount(m) {
+  const days = daysInMonth(currentYear,m);
+  let cnt = 0;
+  for (let d=1; d<=days; d++) {
+    const k = toKey(currentYear,m,d);
+    if (events[k] && events[k].text) cnt++;
+  }
+  const el = document.getElementById(`stat-events-${m}`);
+  if (el) el.textContent = cnt;
+}
+
+function updateMiniCalDot(m, d) {
+  // re-render mini cal for this month
+  const block = document.getElementById(`block-${m}`);
+  if (block) renderMiniCal(m, block);
+}
+
+// ── STATS ──
+function calcStats(m, container) {
+  const days = daysInMonth(currentYear,m);
+  let weekends = 0;
+  for (let d=1; d<=days; d++) {
+    const dow = new Date(currentYear,m,d).getDay();
+    if (dow===0||dow===6) weekends++;
+  }
+  const el = container.querySelector(`#stat-weekend-${m}`);
+  if (el) el.textContent = weekends + '일';
+}
+
+// ── TAG PICKER (inline) ──
+function openTagPicker(k, m, d, row, inputEl) {
+  const existing = document.querySelector('.tag-picker-popup');
+  if (existing) existing.remove();
+
+  const popup = document.createElement('div');
+  popup.className = 'tag-picker-popup';
+  popup.style.cssText = 'position:fixed;background:#fff;border:1px solid #ccc;border-radius:10px;padding:10px;z-index:300;box-shadow:0 4px 16px rgba(0,0,0,0.15);display:flex;gap:6px;';
+  ['없음','업무','개인','중요'].forEach(label => {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.style.cssText = 'padding:4px 10px;border-radius:8px;border:1px solid #ddd;cursor:pointer;font-size:0.78rem;background:#f5f5f5;';
+    btn.onclick = () => {
+      const tagKey = label==='없음'?'': tagKeyFromLabel(label);
+      if (!events[k]) events[k]={text:'',tag:''};
+      events[k].tag = tagKey;
+      const curText = events[k].text || '';
+      inputEl.value = tagKey ? `[${label}] ${curText}` : curText;
+      saveData();
+      popup.remove();
+    };
+    popup.appendChild(btn);
+  });
+
+  const rect = row.getBoundingClientRect();
+  popup.style.top = (rect.bottom+4)+'px';
+  popup.style.left = rect.left+'px';
+  document.body.appendChild(popup);
+  setTimeout(() => document.addEventListener('click', ()=>popup.remove(), {once:true}), 0);
+}
+
+// ── ALL MONTHS GRID ──
+function renderAllMonthsGrid() {
+  const grid = document.getElementById('allMonthsGrid');
+  grid.innerHTML = '';
+  for (let m=0; m<12; m++) {
+    grid.appendChild(buildSmallMonthCard(m));
+  }
+}
+
+function buildSmallMonthCard(m) {
+  const col = MONTH_COLORS[m];
+  const days = daysInMonth(currentYear,m);
+  let eventCount = 0;
+  const previewEvents = [];
+  for (let d=1; d<=days; d++) {
+    const k = toKey(currentYear,m,d);
+    if (events[k] && events[k].text) {
+      eventCount++;
+      if (previewEvents.length<3) previewEvents.push({d, text:events[k].text});
+    }
+  }
+
+  const card = document.createElement('div');
+  card.className = 'small-month-card';
+  card.style.borderTop = `4px solid ${col.dark}`;
+  card.innerHTML = `
+    <div class="small-month-header" style="background:${col.bg}">
+      <span class="sm-name" style="color:${col.dark}">${MONTHS_KO[m]}</span>
+      <span class="sm-count">${eventCount}개</span>
+    </div>
+    <div class="small-mini-cal">
+      <div class="mini-cal-head">
+        <span class="sun" style="font-size:0.65rem;color:#c0392b">일</span>
+        <span style="font-size:0.65rem">월</span><span style="font-size:0.65rem">화</span>
+        <span style="font-size:0.65rem">수</span><span style="font-size:0.65rem">목</span>
+        <span style="font-size:0.65rem">금</span>
+        <span class="sat" style="font-size:0.65rem;color:#3b82c4">토</span>
+      </div>
+      <div class="mini-cal-grid" id="smallcal-${m}"></div>
+    </div>
+    <div class="month-events-preview" id="smallprev-${m}">
+      ${previewEvents.map(e=>`<div class="preview-event"><span>${e.d}일</span>${e.text}</div>`).join('')}
+      ${previewEvents.length===0?'<div style="font-size:0.7rem;color:#bbb">등록된 일정 없음</div>':''}
+    </div>
+  `;
+  card.onclick = () => { setView('month'); activateMonth(m); };
+
+  // fill small mini cal
+  const firstDay = firstDayOfMonth(currentYear,m);
+  const calGrid = card.querySelector(`#smallcal-${m}`);
+  const prevDays = daysInMonth(currentYear,m-1);
+  for (let i=0;i<firstDay;i++){
+    const c=document.createElement('div');
+    c.className='mini-day other-month';
+    c.textContent=prevDays-firstDay+1+i;
+    calGrid.appendChild(c);
+  }
+  for (let d=1;d<=days;d++){
+    const c=document.createElement('div');
+    const dow=new Date(currentYear,m,d).getDay();
+    let cls='mini-day';
+    if(dow===0)cls+=' sun-day';
+    if(dow===6)cls+=' sat-day';
+    if(isToday(currentYear,m,d))cls+=' today';
+    const k=toKey(currentYear,m,d);
+    if(events[k]&&events[k].text)cls+=' has-event';
+    c.className=cls;
+    c.textContent=d;
+    calGrid.appendChild(c);
+  }
+  const total=firstDay+days;
+  const fill=(7-(total%7))%7;
+  for(let i=1;i<=fill;i++){
+    const c=document.createElement('div');
+    c.className='mini-day other-month';
+    c.textContent=i;
+    calGrid.appendChild(c);
+  }
+
+  return card;
+}
+
+// ── YEAR CHANGE ──
+function changeYear(delta) {
+  currentYear += delta;
+  document.getElementById('yearDisplay').textContent = currentYear;
+  document.getElementById('headerYear').textContent = currentYear;
+  saveData();
+  renderTabs();
+  renderAllMonthBlocks();
+  renderAllMonthsGrid();
+  activateMonth(currentMonth);
+}
+
+// ── MODAL ──
+function openModal() {
+  const today = new Date();
+  const y = currentYear;
+  const m = String(currentMonth+1).padStart(2,'0');
+  const d = String(today.getDate()).padStart(2,'0');
+  document.getElementById('modalDate').value = `${y}-${m}-${d}`;
+  document.getElementById('modalText').value = '';
+  document.getElementById('modalTag').value = '';
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('modalText').focus();
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+function saveModalEvent() {
+  const dateVal = document.getElementById('modalDate').value;
+  const text = document.getElementById('modalText').value.trim();
+  const tag = document.getElementById('modalTag').value;
+  if (!dateVal || !text) { alert('날짜와 내용을 입력해주세요.'); return; }
+
+  const [y,mo,d] = dateVal.split('-').map(Number);
+  const k = `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  events[k] = {text, tag};
+  saveData();
+
+  // refresh that month
+  const targetMonth = mo-1;
+  const block = document.getElementById(`block-${targetMonth}`);
+  if (block) {
+    const list = block.querySelector(`#list-${targetMonth}`);
+    if (list) list.innerHTML = '';
+    renderDailyList(targetMonth, block);
+    renderMiniCal(targetMonth, block);
+    updateStatCount(targetMonth);
+  }
+  if (currentView==='all') renderAllMonthsGrid();
+  closeModal();
+}
+
+// keyboard shortcut
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') closeModal();
+});
+
+// start
+init();
+</script>
+</body>
+</html>
